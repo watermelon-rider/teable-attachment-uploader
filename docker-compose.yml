@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  teable-uploader:
+    image: teable-uploader:latest
+    container_name: teable-uploader
+    ports:
+      - "${UPLOADER_PORT:-3001}:3001"
+    restart: unless-stopped
