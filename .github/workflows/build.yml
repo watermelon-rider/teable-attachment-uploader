@@ -63,22 +63,22 @@ jobs:
           type=sha,prefix={{branch}}-
           latest
     
-    # 步骤 5：构建并推送 Docker 镜像
-    - name: Build and push Docker image
-      id: push
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-    
-    # 步骤 6：导出镜像为 tar 文件（用于离线部署）
-    - name: Export Docker image to tar
+    # 步骤 5：构建 Docker 镜像（本地，用于导出 tar）
+    - name: Build Docker image locally
       run: |
-        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        docker save -o teable-uploader.tar ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        docker build -t teable-uploader:latest .
+        docker save -o teable-uploader.tar teable-uploader:latest
         ls -lh teable-uploader.tar
+    
+    # 步骤 6：推送镜像到 GitHub Packages
+    - name: Push Docker image to GHCR
+      id: push
+      run: |
+        docker tag teable-uploader:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        # 推送其他标签
+        docker tag teable-uploader:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
     
     # 步骤 7：上传 tar 作为 artifact（可在 Actions 页面下载）
     - name: Upload tar artifact
