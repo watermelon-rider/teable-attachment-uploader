@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { I18nProvider } from "@/lib/i18n-context";
 
 export const metadata: Metadata = {
-  title: "TeaUploader - Teable 批量上传工具",
-  description: "Teable 批量附件上传和嵌图表格导入工具",
+  title: "TeaUploader - Teable Bulk Upload Tool",
+  description: "Bulk attachment upload and Excel import tool for Teable",
 };
 
 export default function RootLayout({
@@ -12,9 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body className="antialiased">
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

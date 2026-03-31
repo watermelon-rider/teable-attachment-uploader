@@ -4,6 +4,7 @@ import React from 'react';
 import { UploadFile, ExcelData, MainTab } from '@/types';
 import { formatSize } from '@/lib/utils';
 import { IconExcel, IconFolder, IconClose, IconAttachment, IconFile, IconImage } from './Icons';
+import { useI18n } from '@/lib/i18n-context';
 
 interface FileListProps {
   files: UploadFile[];
@@ -13,8 +14,10 @@ interface FileListProps {
 }
 
 export function FileList({ files, mainTab, excelData, onRemove }: FileListProps) {
+  const { t } = useI18n();
+  
   if (files.length === 0) {
-    const emptyMsg = mainTab === 'excel' ? '暂无文件，请选择要导入的嵌图表格' : '暂无文件，请选择要上传的附件';
+    const emptyMsg = mainTab === 'excel' ? t.noFilesPleaseSelectExcel : t.noFilesPleaseSelect;
     return (
       <div className="flex-1 flex items-center justify-center text-gray-300">
         <div className="text-center">
@@ -39,7 +42,7 @@ export function FileList({ files, mainTab, excelData, onRemove }: FileListProps)
             </div>
             <span className="text-[12px] text-gray-700 truncate">{item.file.name}</span>
           </div>
-          <div className="text-[11px] text-gray-400">{item.excelInfo?.rows || 0} 行 / {imgCount} 图</div>
+          <div className="text-[11px] text-gray-400">{item.excelInfo?.rows || 0} {t.rows} / {imgCount} {t.images}</div>
           <StatusBadge status={item.status} errorMsg={item.errorMsg} />
           <button
             onClick={() => onRemove(0)}
@@ -80,12 +83,14 @@ export function FileList({ files, mainTab, excelData, onRemove }: FileListProps)
 }
 
 function StatusBadge({ status, errorMsg }: { status: string; errorMsg?: string }) {
+  const { t } = useI18n();
+  
   const statusMap: Record<string, { text: string; className: string }> = {
-    pending: { text: '待上传', className: 'bg-gray-100 text-gray-500' },
-    uploading: { text: '上传中', className: 'bg-primary-light text-primary' },
-    success: { text: '完成', className: 'bg-success-light text-success' },
-    error: { text: errorMsg || '失败', className: 'bg-error-light text-error' },
-    matched: { text: '已匹配', className: 'bg-warning-light text-warning-800' },
+    pending: { text: t.pending, className: 'bg-gray-100 text-gray-500' },
+    uploading: { text: t.uploading, className: 'bg-primary-light text-primary' },
+    success: { text: t.success, className: 'bg-success-light text-success' },
+    error: { text: errorMsg || t.failed, className: 'bg-error-light text-error' },
+    matched: { text: t.matched, className: 'bg-warning-light text-warning-800' },
   };
 
   const { text, className } = statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-500' };

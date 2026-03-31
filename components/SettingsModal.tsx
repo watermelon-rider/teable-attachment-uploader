@@ -5,6 +5,8 @@ import { TeableConfig } from '@/types';
 import { parseTeableUrl, getTables } from '@/lib/api';
 import { IconClose, IconSettings } from './Icons';
 import { ToastType } from './Toast';
+import { useI18n } from '@/lib/i18n-context';
+import { Language } from '@/lib/i18n';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: SettingsModalProps) {
+  const { t, lang, setLang } = useI18n();
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,13 +41,13 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
 
   const handleSave = async () => {
     if (!url.trim() || !token.trim()) {
-      showToast('请填写完整信息', 'error');
+      showToast(t.pleaseFillAllFields, 'error');
       return;
     }
 
     const parsed = parseTeableUrl(url.trim());
     if (!parsed) {
-      showToast('URL 格式错误，请复制浏览器地址栏完整链接', 'error');
+      showToast(t.urlFormatError, 'error');
       return;
     }
 
@@ -60,9 +63,9 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
       // Test connection
       await getTables(testConfig);
       onSave(testConfig);
-      showToast('连接成功');
+      showToast(t.connectedSuccess);
     } catch (err) {
-      showToast(`连接失败: ${(err as Error).message}`, 'error');
+      showToast(`${t.connectionFailed}: ${(err as Error).message}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +77,7 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
         <div className="px-6 py-5 border-b border-gray-300 flex items-center justify-between">
           <div className="text-base font-semibold text-gray-800 flex items-center gap-2">
             <IconSettings className="w-4 h-4" size={16} />
-            连接到 Teable
+            {t.connectToTeable}
           </div>
           {!isForced && (
             <button
@@ -87,31 +90,60 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
         </div>
 
         <div className="px-6 py-5 space-y-4">
+          {/* Language Selector */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Teable URL</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">{t.language}</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLang('en')}
+                className={`px-3 py-1.5 rounded text-xs font-medium border transition-all ${
+                  lang === 'en'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {t.languageEn}
+              </button>
+              <button
+                onClick={() => setLang('zh')}
+                className={`px-3 py-1.5 rounded text-xs font-medium border transition-all ${
+                  lang === 'zh'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {t.languageZh}
+              </button>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200" />
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t.teableUrl}</label>
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://app.teable.cn/base/bseXXX/table/tblXXX/viwXXX"
+              placeholder={t.teableUrlPlaceholder}
               className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              支持完整链接或短链接（如：https://app.teable.ai/base/bseXXX）
+              {t.teableUrlHint}
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">API Token</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t.apiToken}</label>
             <input
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="teable_xxxxxxxxxxxxxxxx"
+              placeholder={t.apiTokenPlaceholder}
               className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              在 Teable 设置中生成的 Personal Access Token
+              {t.apiTokenHint}
             </p>
           </div>
         </div>
@@ -122,7 +154,7 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
               onClick={onClose}
               className="px-4 py-2 rounded text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              取消
+              {t.cancel}
             </button>
           )}
           <button
@@ -131,7 +163,7 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
             className="px-4 py-2 rounded text-sm font-medium bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
           >
             {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-            {isLoading ? '验证中...' : '连接并保存'}
+            {isLoading ? t.verifying : t.connectAndSave}
           </button>
         </div>
       </div>

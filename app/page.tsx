@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
 import { TeableConfig, TeableField, TeableTable, UploadFile, UploadMode, MainTab, ExcelData } from '@/types';
 import { loadConfig, saveConfig, clearConfig } from '@/lib/storage';
+import { useI18n } from '@/lib/i18n-context';
 import {
   getTables, getFields, getAllRecords, createRecords,
   getSignature, uploadToStorage, notifyUpload, uploadAttachment,
@@ -20,6 +21,8 @@ import { IconLogo, IconSettings, IconUpload, IconExcel, IconClose } from '@/comp
 const MAX_CONCURRENT = 3;
 
 export default function Home() {
+  const { t } = useI18n();
+  
   // Config & Connection
   const [config, setConfig] = useState<TeableConfig | null>(null);
   const [tables, setTables] = useState<TeableTable[]>([]);
@@ -73,7 +76,7 @@ export default function Home() {
       const tables = await getTables(cfg);
       setTables(tables);
     } catch (err) {
-      showToast('连接失效，请重新配置', 'error');
+      showToast(t.connectionExpired, 'error');
       clearConfig();
       setConfig(null);
       setIsSettingsOpen(true);
@@ -123,9 +126,9 @@ export default function Home() {
       }
       
       const table = tables.find(t => t.id === tableId);
-      showToast(`已加载表: ${table?.name || tableId}`);
+      showToast(`${t.loadingTable}: ${table?.name || tableId}`);
     } catch (err) {
-      showToast('加载表字段失败', 'error');
+      showToast(t.loadTableFailed, 'error');
       setFields([]);
     }
   };
@@ -159,7 +162,7 @@ export default function Home() {
       if (excelFile) {
         handleExcelFile(excelFile);
       } else {
-        showToast('请选择嵌图表格文件', 'warning');
+        showToast(t.pleaseSelectExcelFile, 'warning');
       }
     } else {
       addAttachmentFiles(newFiles);
@@ -169,7 +172,7 @@ export default function Home() {
   const addAttachmentFiles = (newFiles: File[]) => {
     const filtered = newFiles.filter(f => {
       if (files.some(sf => sf.file.name === f.name && sf.file.size === f.size)) {
-        showToast(`"${f.name}" 已存在`, 'warning');
+        showToast(`"${f.name}" ${t.fileAlreadyExists}`, 'warning');
         return false;
       }
       return true;
@@ -179,7 +182,7 @@ export default function Home() {
   };
 
   const handleExcelFile = async (file: File) => {
-    showToast('正在解析表格...');
+    showToast(t.parsingExcel);
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
@@ -222,9 +225,9 @@ export default function Home() {
         excelInfo: { rows: totalRows, hasImages: Object.keys(images).length > 0 },
       }]);
 
-      showToast(`解析成功: ${sheets.length} 个工作表`);
+      showToast(`${t.parseSuccess}: ${sheets.length} ${t.rows}`);
     } catch (err) {
-      showToast(`解析失败: ${(err as Error).message}`, 'error');
+      showToast(`${t.parseFailed}: ${(err as Error).message}`, 'error');
     }
   };
 
@@ -242,7 +245,7 @@ export default function Home() {
 
       if (cellImagesXml && cellImagesRels) {
         // Parse relationships
-        const relMatches = cellImagesRels.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g);
+        const relMatches = cellImagesXml.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g);
         const relMap: Record<string, string> = {};
         for (const m of relMatches) {
           relMap[m[1]] = m[2];
@@ -372,22 +375,22 @@ export default function Home() {
     }
 
     if (!targetTableId) {
-      showToast('请先选择目标表', 'warning');
+      showToast(t.pleaseSelectTargetTable, 'warning');
       return;
     }
 
     if (mode === 'create' && !nameFieldId) {
-      showToast('请选择名称写入字段', 'warning');
+      showToast(t.pleaseSelectNameField, 'warning');
       return;
     }
 
     if (mode === 'update' && !matchFieldId) {
-      showToast('请选择匹配字段', 'warning');
+      showToast(t.pleaseSelectMatchField, 'warning');
       return;
     }
 
     if (!attachmentFieldId) {
-      showToast('请选择附件字段', 'warning');
+      showToast(t.pleaseSelectAttachmentField, 'warning');
       return;
     }
 
@@ -395,7 +398,7 @@ export default function Home() {
     let finalAttachmentFieldId = attachmentFieldId;
     if (attachmentFieldId === '__create__') {
       try {
-        showToast('正在创建附件字段...');
+        showToast(`${t.creating} ${ATTACHMENT_FIELD_NAME}...`);
         const newField = await createField(config, targetTableId, {
           name: ATTACHMENT_FIELD_NAME,
           type: 'attachment',
@@ -405,9 +408,9 @@ export default function Home() {
         // Refresh fields list
         const updatedFields = await getFields(config, targetTableId);
         setFields(updatedFields);
-        showToast(`字段 "${ATTACHMENT_FIELD_NAME}" 创建成功`);
+        showToast(`${ATTACHMENT_FIELD_NAME} ${t.fieldCreated}`);
       } catch (err) {
-        showToast(`创建字段失败: ${(err as Error).message}`, 'error');
+        showToast(`${t.createFieldFailed}: ${(err as Error).message}`, 'error');
         return;
       }
     }
@@ -422,7 +425,7 @@ export default function Home() {
       } else {
         result = await uploadUpdate(matchFieldId, finalAttachmentFieldId);
       }
-      showToast(`完成: ${result.success} 成功, ${result.error} 失败`);
+      showToast(`${t.importComplete}: ${result.success} ${t.success}, ${result.error} ${t.failed}`);
       
       // Set link to target table
       if (config && targetTableId) {
@@ -430,7 +433,7 @@ export default function Home() {
         setCompletedTableUrl(tableUrl);
       }
     } catch (err) {
-      showToast(`上传出错: ${(err as Error).message}`, 'error');
+      showToast(`${t.uploadError}: ${(err as Error).message}`, 'error');
     } finally {
       setIsUploading(false);
     }
@@ -447,7 +450,7 @@ export default function Home() {
     });
 
     if (filesToUpload.length === 0) {
-      showToast('所有文件已上传完成', 'warning');
+      showToast(t.allFilesUploaded, 'warning');
       return { success: 0, error: 0 };
     }
 
@@ -477,7 +480,7 @@ export default function Home() {
         successCount++;
         setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
       } catch {
-        updateFileStatus(idx, 'error', '失败');
+        updateFileStatus(idx, 'error', t.failed);
         errorCount++;
         setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
       }
@@ -502,7 +505,7 @@ export default function Home() {
     });
 
     if (filesToUpload.length === 0) {
-      showToast('所有文件已上传完成', 'warning');
+      showToast(t.allFilesUploaded, 'warning');
       return { success: 0, error: 0 };
     }
 
@@ -557,12 +560,12 @@ export default function Home() {
           successCount++;
           setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
         } else {
-          updateFileStatus(idx, 'error', '未匹配');
+          updateFileStatus(idx, 'error', t.notMatched);
           errorCount++;
           setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
         }
       } catch {
-        updateFileStatus(idx, 'error', '失败');
+        updateFileStatus(idx, 'error', t.failed);
         errorCount++;
         setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
       }
@@ -581,12 +584,12 @@ export default function Home() {
     
     if (!excelData) {
       console.error('[ExcelUpload] No excel data');
-      showToast('请先上传嵌图表格文件', 'error');
+      showToast(t.pleaseSelectExcelFile, 'error');
       return;
     }
     if (!config) {
       console.error('[ExcelUpload] No config');
-      showToast('请先配置连接', 'error');
+      showToast(t.pleaseConfigureFirst, 'error');
       return;
     }
 
@@ -635,19 +638,19 @@ export default function Home() {
       console.log('[ExcelUpload] Headers:', headers);
       
       const fieldsToCreate = headers.map((h, i) => ({
-        name: String(h || `列${i + 1}`),
+        name: String(h || `${t.rows}${i + 1}`),
         type: (i === excelData.imageColIndex && excelImportImages) ? 'attachment' : 'singleLineText',
       }));
 
       if (excelImportImages && excelData.imageColIndex === -1) {
-        fieldsToCreate.push({ name: '图片', type: 'attachment' });
+        fieldsToCreate.push({ name: t.images, type: 'attachment' });
         console.log('[ExcelUpload] Added default image column');
       }
       
       console.log('[ExcelUpload] Fields to create:', fieldsToCreate);
 
       // Step 3: Create table
-      showToast(`正在创建表: ${finalName}...`);
+      showToast(`${t.creating}: ${finalName}...`);
       console.log('[ExcelUpload] Step 3: Creating table...');
       
       let newTable;
@@ -659,7 +662,7 @@ export default function Home() {
         console.log('[ExcelUpload] Table created:', newTable);
       } catch (err) {
         console.error('[ExcelUpload] Failed to create table:', err);
-        throw new Error(`创建表失败: ${(err as Error).message}`);
+        throw new Error(`${t.createFieldFailed}: ${(err as Error).message}`);
       }
 
       // Step 4: Wait a bit for fields to be ready
@@ -674,7 +677,7 @@ export default function Home() {
         console.log('[ExcelUpload] Got fields:', tableFields.map(f => ({ id: f.id, name: f.name, type: f.type })));
       } catch (err) {
         console.error('[ExcelUpload] Failed to get fields:', err);
-        throw new Error(`获取表字段失败: ${(err as Error).message}`);
+        throw new Error(`${t.loadTableFailed}: ${(err as Error).message}`);
       }
 
       // Step 5.5: Check and delete auto-created empty records
@@ -733,7 +736,7 @@ export default function Home() {
         const record: { fields: Record<string, unknown>; _image?: { fieldId: string; blob: Blob; name: string } } = { fields: {} };
 
         headers.forEach((h, colIdx) => {
-          const field = tableFields.find(f => f.name === String(h || `列${colIdx + 1}`));
+          const field = tableFields.find(f => f.name === String(h || `${t.rows}${colIdx + 1}`));
           if (field && row[colIdx] !== undefined) {
             if (field.type === 'attachment') {
               record.fields[field.id] = [];
@@ -782,7 +785,7 @@ export default function Home() {
       console.log('[ExcelUpload] Prepared records:', records.length, ', with images:', recordsWithImages);
 
       // Step 7: Create records with concurrency control
-      showToast(`正在导入 ${records.length} 条记录...`);
+      showToast(`${t.uploading} ${records.length} ${t.rows}...`);
       console.log('[ExcelUpload] Step 7: Creating records...');
       
       let successCount = 0;
@@ -856,10 +859,10 @@ export default function Home() {
 
       if (errorCount === 0) {
         updateFileStatus(0, 'success');
-        showToast(`导入完成: ${successCount} 条记录`);
+        showToast(`${t.importComplete}: ${successCount} ${t.rows}`);
       } else {
-        updateFileStatus(0, 'error', `${errorCount}失败`);
-        showToast(`导入完成: ${successCount} 成功, ${errorCount} 失败`, 'warning');
+        updateFileStatus(0, 'error', `${errorCount}${t.failed}`);
+        showToast(`${t.importComplete}: ${successCount} ${t.success}, ${errorCount} ${t.failed}`, 'warning');
       }
       
       // Set link to newly created table
@@ -869,8 +872,8 @@ export default function Home() {
       }
     } catch (err) {
       console.error('[ExcelUpload] Import failed:', err);
-      updateFileStatus(0, 'error', '失败');
-      showToast(`导入失败: ${(err as Error).message}`, 'error');
+      updateFileStatus(0, 'error', t.failed);
+      showToast(`${t.uploadError}: ${(err as Error).message}`, 'error');
     } finally {
       setIsUploading(false);
     }
@@ -920,7 +923,7 @@ export default function Home() {
           <div className="w-6 h-6 bg-primary rounded flex items-center justify-center text-white">
             <IconLogo size={14} />
           </div>
-          <span className="font-semibold text-[13px] tracking-tight text-gray-800">TeaUploader</span>
+          <span className="font-semibold text-[13px] tracking-tight text-gray-800">{t.appName}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
@@ -929,12 +932,12 @@ export default function Home() {
               : 'bg-gray-100 text-gray-500 border-transparent'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${config ? 'bg-success' : 'bg-gray-400'}`} />
-            {config ? '已连接' : '未配置'}
+            {config ? t.connected : t.notConfigured}
           </div>
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-            title="设置"
+            title={t.settings}
           >
             <IconSettings size={16} />
           </button>
@@ -995,10 +998,10 @@ export default function Home() {
                 )}
               </div>
               <div className="text-[12px] font-medium text-gray-700 mb-0.5">
-                {mainTab === 'excel' ? '点击或拖拽嵌图表格到此处' : '点击或拖拽文件到此处'}
+                {mainTab === 'excel' ? t.dropExcelHere : t.dropFilesHere}
               </div>
               <div className="text-[11px] text-gray-400">
-                {mainTab === 'excel' ? '支持 .xlsx 格式，含内嵌图片' : '支持批量上传，可多选文件'}
+                {mainTab === 'excel' ? t.supportExcelWithImages : t.supportBatchUpload}
               </div>
             </div>
             <input
@@ -1013,9 +1016,9 @@ export default function Home() {
 
           {/* File List Header */}
           <div className="grid grid-cols-[1fr_70px_80px_32px] gap-2 px-4 py-2 border-b border-gray-200 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-            <span>{mainTab === 'excel' ? '数据' : '文件名'}</span>
-            <span>{mainTab === 'excel' ? '图片' : '大小'}</span>
-            <span>状态</span>
+            <span>{mainTab === 'excel' ? t.data : t.filename}</span>
+            <span>{mainTab === 'excel' ? t.images : t.size}</span>
+            <span>{t.status}</span>
             <span></span>
           </div>
 
@@ -1030,14 +1033,14 @@ export default function Home() {
           {/* Completed Table Link */}
           {completedTableUrl && (
             <div className="px-4 py-2 bg-success-light border-t border-success/20 flex items-center justify-between">
-              <span className="text-[11px] text-success">上传完成</span>
+              <span className="text-[11px] text-success">{t.uploadComplete}</span>
               <a
                 href={completedTableUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] font-medium text-primary hover:text-primary-hover flex items-center gap-1"
               >
-                查看表格
+                {t.viewTable}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                   <polyline points="15 3 21 3 21 9" />
@@ -1063,15 +1066,15 @@ export default function Home() {
 
             <div className="flex gap-4 text-[11px]">
               <div className="flex items-center gap-1">
-                <span className="text-gray-400">总计:</span>
+                <span className="text-gray-400">{t.total}:</span>
                 <span className="font-medium text-gray-600">{files.length}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-gray-400">成功:</span>
+                <span className="text-gray-400">{t.success}:</span>
                 <span className="font-medium text-success">{progress.success}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-gray-400">失败:</span>
+                <span className="text-gray-400">{t.failed}:</span>
                 <span className="font-medium text-error">{progress.error}</span>
               </div>
             </div>
@@ -1082,14 +1085,14 @@ export default function Home() {
                 disabled={isUploading || files.length === 0}
                 className="px-3 py-1.5 rounded text-[11px] font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                清空
+                {t.clear}
               </button>
               <button
                 onClick={startUpload}
                 disabled={!canUpload}
                 className="px-3 py-1.5 rounded text-[11px] font-medium bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isUploading ? '上传中...' : '开始上传'}
+                {isUploading ? t.uploadingEllipsis : t.startUpload}
               </button>
             </div>
           </div>

@@ -1,11 +1,9 @@
 # TeaUploader 离线安装指南
 
-本文档假设你已将离线包 `teable-uploader.tar` 传输到服务器。
-
 ## 前提条件
 
 - 服务器已安装 Docker
-- 离线包 `teable-uploader.tar` 已上传到服务器任意位置
+- 离线包 `teable-uploader.tar` 已上传到服务器
 
 ## 安装步骤
 
@@ -29,10 +27,10 @@ mv /path/to/teable-uploader.tar ./
 cat > docker-compose.yml << 'EOF'
 services:
   teable-uploader:
-    image: teable-uploader:latest
+    image: ghcr.io/watermelon-rider/teable-attachment-uploader:latest
     container_name: teable-uploader
     ports:
-      - "3001:3001"
+      - "${UPLOADER_PORT:-3001}:3001"
     restart: unless-stopped
 EOF
 ```
@@ -40,7 +38,7 @@ EOF
 ### 4. 导入 Docker 镜像
 
 ```bash
-docker load -i teable-uploader.tar
+gunzip -c teable-attachment-uploader.tar.gz | docker load
 ```
 
 ### 5. 启动服务
@@ -95,7 +93,7 @@ vi docker-compose.yml
 
 ```yaml
 ports:
-  - "8080:3001"  # 将 3001 改为 8080
+  - "8080:3001" # 将 3001 改为 8080
 ```
 
 然后重启：
@@ -103,24 +101,4 @@ ports:
 ```bash
 docker-compose down
 docker-compose up -d
-```
-
----
-
-## 故障排查
-
-**端口被占用**：
-```bash
-# 修改 docker-compose.yml 中的端口映射
-vi ~/teable-uploader/docker-compose.yml
-```
-
-**防火墙问题**：
-```bash
-# CentOS
-sudo firewall-cmd --add-port=3001/tcp --permanent
-sudo firewall-cmd --reload
-
-# Ubuntu
-sudo ufw allow 3001/tcp
 ```
