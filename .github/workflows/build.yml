@@ -1,11 +1,13 @@
 # GitHub Actions 工作流
-# 作用：自动构建 Docker 镜像并导出 tar 文件
+# 作用：自动构建 Docker 镜像并推送到 GitHub Packages
 
-name: Build Docker Image
+name: Build and Push Docker Image
 
 # 环境变量
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 # 触发条件：什么时候执行这个工作流
 on:
@@ -24,42 +26,57 @@ jobs:
     # 运行环境：Ubuntu 最新版
     runs-on: ubuntu-latest
     
+    # 权限设置（用于推送镜像到 ghcr.io）
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    
     # 执行步骤
     steps:
     # 步骤 1：检出代码
-    # 使用 GitHub 官方提供的 action
     - name: Checkout code
       uses: actions/checkout@v5
     
-    # 步骤 2：设置 Docker Buildx（用于构建镜像）
+    # 步骤 2：设置 Docker Buildx
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
     
-    # 步骤 3：构建 Docker 镜像
-    - name: Build Docker image
-      run: |
-        docker build -t teable-uploader:latest .
-    
-    # 步骤 4：导出镜像为 tar 文件
-    - name: Export Docker image
-      run: |
-        docker save -o teable-uploader.tar teable-uploader:latest
-        ls -lh teable-uploader.tar
-    
-    # 步骤 5：上传构建产物（作为 artifact，可在 Actions 页面下载）
-    - name: Upload artifact
-      uses: actions/upload-artifact@v5
+    # 步骤 3：登录 GitHub Container Registry
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
       with:
-        name: teable-uploader-image
-        path: teable-uploader.tar
-        retention-days: 30  # 保留 30 天
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
-    # 步骤 6（可选）：如果是打 tag，发布到 Release
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+    # 步骤 4：提取元数据（标签、标签等）
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
       with:
-        files: teable-uploader.tar
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=tag
+          type=sha,prefix={{branch}}-
+          latest
+    
+    # 步骤 5：构建并推送 Docker 镜像
+    - name: Build and push Docker image
+      id: push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+    
+    # 步骤 6：生成构件证明（可选，用于安全审计）
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.push.outputs.digest }}
+        push-to-registry: true
