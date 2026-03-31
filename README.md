@@ -26,30 +26,63 @@
 - XLSX (SheetJS)
 - JSZip
 
-## 开发
+## 部署
+
+### 方式一：从 GitHub Packages 拉取（推荐）
+
+镜像自动构建并推送到 GitHub Container Registry。
 
 ```bash
-# 安装依赖
-npm install
+# 拉取最新镜像
+docker pull ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 开发服务器
-npm run dev
+# 运行
+docker run -d \
+  --name teable-uploader \
+  -p 3001:3001 \
+  --restart unless-stopped \
+  ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 构建
-npm run build
-
-# 启动生产服务器
-npm start
+# 访问 http://服务器IP:3001
 ```
 
-## Docker 部署
+### 方式二：本地构建
 
 ```bash
+# 克隆仓库
+git clone https://github.com/watermelon-rider/teable-attachment-uploader.git
+cd teable-attachment-uploader
+
 # 构建镜像
 docker build -t teable-uploader:latest .
 
 # 运行
 docker run -d -p 3001:3001 --name teable-uploader teable-uploader:latest
+```
+
+### 方式三：离线部署
+
+下载镜像 tar 文件到离线环境：
+
+1. 在 [GitHub Actions](https://github.com/watermelon-rider/teable-attachment-uploader/actions) 页面下载构建产物
+2. 或使用 `docker save` 导出镜像传输到离线服务器
+
+详见 [DEPLOY.md](./DEPLOY.md)
+
+## 开发
+
+```bash
+# 安装依赖
+yarn install
+
+# 开发服务器
+yarn dev
+
+# 构建
+yarn build
+
+# 启动生产服务器
+yarn start
 ```
 
 ## 使用说明
@@ -59,3 +92,7 @@ docker run -d -p 3001:3001 --name teable-uploader teable-uploader:latest
 3. 选择目标表
 4. 选择上传模式并配置选项
 5. 上传文件并开始处理
+
+## License
+
+MIT
