@@ -2,7 +2,12 @@ version: '3.8'
 
 services:
   teable-uploader:
-    image: teable-uploader:latest
+    # GitHub Packages 镜像（推荐，需联网）
+    image: ghcr.io/watermelon-rider/teable-attachment-uploader:latest
+    
+    # 本地构建镜像（离线/自定义时使用）
+    # image: teable-uploader:latest
+    
     container_name: teable-uploader
     ports:
       - "${UPLOADER_PORT:-3001}:3001"
