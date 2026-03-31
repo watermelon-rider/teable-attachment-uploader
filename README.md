@@ -1,23 +1,23 @@
-# TeaUploader - Teable 批量上传工具
+# TeaUploader - Teable Batch Upload Tool
 
-基于 Next.js + React + TypeScript + Tailwind CSS 的 Teable 批量附件上传和 Excel 导入工具。
+A Teable batch attachment upload and Excel import tool built with Next.js + React + TypeScript + Tailwind CSS.
 
-## 功能特性
+## Features
 
-- 📎 **批量附件上传**
-  - 上传创建记录：每个文件创建一条新记录
-  - 上传更新记录：按文件名匹配并追加到现有记录
-  - 支持选择 Base 下的任意目标表
-- 📊 **Excel 导入**
-  - 自动解析 .xlsx 文件
-  - 支持提取内嵌图片（DISPIMG 公式）
-  - 自动识别图片列并转为附件字段
+- 📎 **Batch Attachment Upload**
+  - Upload to create records: Each file creates a new record
+  - Upload to update records: Match by filename and append to existing records
+  - Support selecting any table under a Base
+- 📊 **Excel Import**
+  - Automatically parse .xlsx files
+  - Support extracting embedded images (DISPIMG formula)
+  - Auto-detect image columns and convert to attachment fields
 
-- 🔧 **私有化支持**
-  - 支持带端口的 URL（如 `http://192.168.1.10:3000`）
-  - 所有依赖已本地化，无需外网 CDN
+- 🔧 **Self-Hosted Support**
+  - Support URLs with port (e.g., `http://192.168.1.10:3000`)
+  - All dependencies are localized, no external CDN required
 
-## 技术栈
+## Tech Stack
 
 - Next.js 14
 - React 18
@@ -26,72 +26,72 @@
 - XLSX (SheetJS)
 - JSZip
 
-## 部署
+## Deployment
 
-### 方式一：从 GitHub Packages 拉取（推荐）
+### Option 1: Pull from GitHub Packages (Recommended)
 
-镜像自动构建并推送到 GitHub Container Registry。
+Images are automatically built and pushed to GitHub Container Registry.
 
 ```bash
-# 拉取最新镜像
+# Pull the latest image
 docker pull ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 运行
+# Run
 docker run -d \
   --name teable-uploader \
   -p 3001:3001 \
   --restart unless-stopped \
   ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 访问 http://服务器IP:3001
+# Access http://server-ip:3001
 ```
 
-### 方式二：本地构建
+### Option 2: Local Build
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/watermelon-rider/teable-attachment-uploader.git
 cd teable-attachment-uploader
 
-# 构建镜像
+# Build the image
 docker build -t teable-uploader:latest .
 
-# 运行
+# Run
 docker run -d -p 3001:3001 --name teable-uploader teable-uploader:latest
 ```
 
-### 方式三：离线部署
+### Option 3: Offline Deployment
 
-下载镜像 tar 文件到离线环境：
+Download the image tar file to the offline environment:
 
-1. 在 [GitHub Actions](https://github.com/watermelon-rider/teable-attachment-uploader/actions) 页面下载构建产物
-2. 或使用 `docker save` 导出镜像传输到离线服务器
+1. Download build artifacts from the [GitHub Actions](https://github.com/watermelon-rider/teable-attachment-uploader/actions) page
+2. Or use `docker save` to export the image and transfer to the offline server
 
-详见 [DEPLOY.md](./DEPLOY.md)
+See [DEPLOY.md](./DEPLOY.md) for more details.
 
-## 开发
+## Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 yarn install
 
-# 开发服务器
+# Development server
 yarn dev
 
-# 构建
+# Build
 yarn build
 
-# 启动生产服务器
+# Start production server
 yarn start
 ```
 
-## 使用说明
+## Usage Instructions
 
-1. 打开页面后，点击右上角的设置按钮
-2. 配置 Teable URL 和 API Token
-3. 选择目标表
-4. 选择上传模式并配置选项
-5. 上传文件并开始处理
+1. Open the page and click the settings button in the top right corner
+2. Configure Teable URL and API Token
+3. Select the target table
+4. Choose the upload mode and configure options
+5. Upload files and start processing
 
 ## License
 

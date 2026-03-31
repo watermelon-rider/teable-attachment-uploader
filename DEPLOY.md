@@ -1,56 +1,56 @@
-# TeaUploader 部署指南
+# TeaUploader Deployment Guide
 
-## 方式一：从 GitHub Packages 拉取（推荐，需联网）
+## Option 1: Pull from GitHub Packages (Recommended, Network Required)
 
-镜像自动构建并推送到 GitHub Container Registry。
+Images are automatically built and pushed to GitHub Container Registry.
 
 ```bash
-# 拉取镜像
+# Pull the image
 docker pull ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 运行
+# Run
 docker run -d \
   --name teable-uploader \
   -p 3001:3001 \
   --restart unless-stopped \
   ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 
-# 访问 http://<服务器IP>:3001
+# Access http://<server-ip>:3001
 ```
 
-### 使用 Docker Compose
+### Using Docker Compose
 
 ```bash
-# 下载 compose 文件
+# Download compose file
 curl -O https://raw.githubusercontent.com/watermelon-rider/teable-attachment-uploader/main/docker-compose.yml
 
-# 启动（默认端口 3001）
+# Start (default port 3001)
 docker-compose up -d
 
-# 或使用自定义端口
+# Or use custom port
 UPLOADER_PORT=8080 docker-compose up -d
 ```
 
 ---
 
-## 方式二：离线部署（无网络环境）
+## Option 2: Offline Deployment (No Network Environment)
 
-### 下载镜像包
+### Download Image Package
 
-1. 访问 [GitHub Actions](https://github.com/watermelon-rider/teable-attachment-uploader/actions) 页面
-2. 点击最新的成功构建（绿色 ✅）
-3. 页面底部 **Artifacts** 区域
-4. 下载 `teable-uploader-image.zip`，解压得到 `teable-uploader.tar`
+1. Visit the [GitHub Actions](https://github.com/watermelon-rider/teable-attachment-uploader/actions) page
+2. Click the latest successful build (green ✅)
+3. Go to the **Artifacts** section at the bottom of the page
+4. Download `teable-uploader-image.zip`, extract to get `teable-uploader.tar`
 
-### 部署
+### Deployment
 
-将 `teable-uploader.tar` 传到离线服务器：
+Transfer `teable-uploader.tar` to the offline server:
 
 ```bash
-# 导入镜像
+# Import image
 docker load -i teable-uploader.tar
 
-# 运行
+# Run
 docker run -d \
   --name teable-uploader \
   -p 3001:3001 \
@@ -58,59 +58,59 @@ docker run -d \
   teable-uploader:latest
 ```
 
-或使用脚本启动：
+Or start using the script:
 
 ```bash
-# 使用项目自带的脚本（可选）
-./start.sh        # 默认 3001 端口
-./start.sh 8080   # 自定义端口
+# Use the project's built-in script (optional)
+./start.sh        # Default port 3001
+./start.sh 8080   # Custom port
 ```
 
 ---
 
-## 方式三：本地构建
+## Option 3: Local Build
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/watermelon-rider/teable-attachment-uploader.git
 cd teable-attachment-uploader
 
-# 构建镜像
+# Build the image
 docker build -t teable-uploader:latest .
 
-# 运行
+# Run
 docker run -d -p 3001:3001 --name teable-uploader teable-uploader:latest
 ```
 
 ---
 
-## 常用命令
+## Common Commands
 
 ```bash
-# 查看日志
+# View logs
 docker logs -f teable-uploader
 
-# 重启
+# Restart
 docker restart teable-uploader
 
-# 停止并删除
+# Stop and remove
 docker stop teable-uploader && docker rm teable-uploader
 
-# 查看状态
+# Check status
 docker ps | grep teable-uploader
 ```
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-**端口被占用**：
+**Port already in use**:
 ```bash
-# 换端口启动
+# Use a different port
 docker run -d -p 8080:3001 --name teable-uploader ghcr.io/watermelon-rider/teable-attachment-uploader:latest
 ```
 
-**防火墙问题**：
+**Firewall issues**:
 ```bash
 # CentOS
 firewall-cmd --add-port=3001/tcp --permanent
@@ -120,8 +120,8 @@ firewall-cmd --reload
 ufw allow 3001/tcp
 ```
 
-**镜像拉取失败**：
+**Image pull failed**:
 ```bash
-# 检查网络连接
-# 公开镜像不需要登录，可直接拉取
+# Check network connection
+# Public images do not require login, can be pulled directly
 ```
