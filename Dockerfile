@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18 AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN yarn build
 
 # Production stage - 使用更小的 serve 镜像
-FROM node:18-slim AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
