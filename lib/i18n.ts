@@ -149,8 +149,8 @@ export const translations: Record<Language, Translations> = {
     // Settings Modal
     connectToTeable: 'Connect to Teable',
     teableUrl: 'Teable URL',
-    teableUrlPlaceholder: 'https://app.teable.cn/base/bseXXX/table/tblXXX/viwXXX',
-    teableUrlHint: 'Supports full URL or short URL (e.g.: https://app.teable.ai/base/bseXXX)',
+    teableUrlPlaceholder: 'https://app.teable.cn/base/bseXXX/table/tblXXX/viwXXX (or http://...)',
+    teableUrlHint: 'Supports http/https, full URL or short URL (e.g.: https://app.teable.ai/base/bseXXX)',
     apiToken: 'API Token',
     apiTokenPlaceholder: 'teable_xxxxxxxxxxxxxxxx',
     apiTokenHint: 'Personal Access Token generated in Teable settings',
@@ -281,8 +281,8 @@ export const translations: Record<Language, Translations> = {
     // Settings Modal
     connectToTeable: '连接到 Teable',
     teableUrl: 'Teable URL',
-    teableUrlPlaceholder: 'https://app.teable.cn/base/bseXXX/table/tblXXX/viwXXX',
-    teableUrlHint: '支持完整链接或短链接（如：https://app.teable.ai/base/bseXXX）',
+    teableUrlPlaceholder: 'https://app.teable.cn/base/bseXXX/table/tblXXX/viwXXX（或 http://...）',
+    teableUrlHint: '支持 http/https，完整链接或短链接（如：https://app.teable.ai/base/bseXXX）',
     apiToken: 'API Token',
     apiTokenPlaceholder: 'teable_xxxxxxxxxxxxxxxx',
     apiTokenHint: '在 Teable 设置中生成的 Personal Access Token',
