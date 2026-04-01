@@ -400,9 +400,20 @@ export const translations: Record<Language, Translations> = {
   },
 };
 
+function detectBrowserLanguage(): Language {
+  if (typeof window === 'undefined') return 'en';
+  const browserLang = navigator.language || (navigator as unknown as { browserLanguage?: string }).browserLanguage || 'en';
+  // Check if browser language starts with 'zh' (Chinese)
+  return browserLang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+}
+
 export function getStoredLanguage(): Language {
   if (typeof window === 'undefined') return 'en';
   const stored = localStorage.getItem('teaUploaderLanguage') as Language;
+  // If no stored language, auto-detect from browser
+  if (!stored) {
+    return detectBrowserLanguage();
+  }
   return stored === 'zh' ? 'zh' : 'en';
 }
 
