@@ -131,6 +131,7 @@ export interface Translations {
   connectedSuccess: string;
   pleaseFillAllFields: string;
   urlFormatError: string;
+  mixedContentWarning: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -265,6 +266,7 @@ export const translations: Record<Language, Translations> = {
     connectedSuccess: 'Connected successfully',
     pleaseFillAllFields: 'Please fill in all fields',
     urlFormatError: 'URL format error, please copy the full link from browser address bar',
+    mixedContentWarning: '⚠️ Warning: You are accessing the application via HTTPS, but the Teable URL uses HTTP. Browser security policy will block this connection. Please use HTTPS Teable URL, or access this application via HTTP.',
   },
   zh: {
     // Header
@@ -397,6 +399,7 @@ export const translations: Record<Language, Translations> = {
     connectedSuccess: '连接成功',
     pleaseFillAllFields: '请填写完整信息',
     urlFormatError: 'URL 格式错误，请复制浏览器地址栏完整链接',
+    mixedContentWarning: '⚠️ 警告：您正在通过 HTTPS 访问本应用，但 Teable 地址使用 HTTP。浏览器安全策略会阻止此连接。请使用 HTTPS 的 Teable 地址，或通过 HTTP 访问本应用。',
   },
 };
 

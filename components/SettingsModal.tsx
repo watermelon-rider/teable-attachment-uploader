@@ -22,6 +22,14 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check for mixed content issue (HTTPS page trying to access HTTP API)
+  const isMixedContent = () => {
+    if (typeof window === 'undefined') return false;
+    const isPageHttps = window.location.protocol === 'https:';
+    const isUrlHttp = url.trim().toLowerCase().startsWith('http:');
+    return isPageHttps && isUrlHttp;
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     const saved = localStorage.getItem('teaUploaderConfig');
@@ -131,6 +139,11 @@ export function SettingsModal({ isOpen, isForced, onClose, onSave, showToast }: 
             <p className="text-[11px] text-gray-500 mt-1">
               {t.teableUrlHint}
             </p>
+            {isMixedContent() && (
+              <p className="text-[11px] text-red-600 mt-1.5 font-medium bg-red-50 px-2 py-1.5 rounded border border-red-200">
+                {t.mixedContentWarning}
+              </p>
+            )}
           </div>
 
           <div>
