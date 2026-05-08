@@ -955,13 +955,6 @@ export default function Home() {
             {config ? t.connected : t.notConfigured}
           </div>
           <button
-            onClick={() => setShowLogs(true)}
-            className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-            title="Logs"
-          >
-            <IconLog size={16} />
-          </button>
-          <button
             onClick={() => setIsSettingsOpen(true)}
             className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
             title={t.settings}
@@ -1089,6 +1082,13 @@ export default function Home() {
               <span className="text-[11px] text-gray-400 min-w-[28px]">
                 {progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%
               </span>
+              <button
+                onClick={() => setShowLogs(true)}
+                className="text-[11px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                title="Logs"
+              >
+                icon
+              </button>
             </div>
 
             <div className="flex gap-4 text-[11px]">
