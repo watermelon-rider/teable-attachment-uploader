@@ -244,8 +244,8 @@ export default function Home() {
       console.log('[ParseImages] cellimages.xml.rels exists:', !!cellImagesRels);
 
       if (cellImagesXml && cellImagesRels) {
-        // Parse relationships
-        const relMatches = cellImagesXml.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g);
+        // Parse relationships from .rels file
+        const relMatches = cellImagesRels.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g);
         const relMap: Record<string, string> = {};
         for (const m of relMatches) {
           relMap[m[1]] = m[2];
