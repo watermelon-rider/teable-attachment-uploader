@@ -870,18 +870,10 @@ export default function Home() {
         }
       };
 
-      // Process with concurrency
-      const queue = [...records.entries()];
-      const workers = [];
-      for (let i = 0; i < Math.min(MAX_CONCURRENT, queue.length); i++) {
-        workers.push((async () => {
-          while (queue.length > 0) {
-            const [idx, record] = queue.shift()!;
-            await processRecord(record, idx);
-          }
-        })());
+      // Process sequentially to preserve row order in Teable
+      for (let idx = 0; idx < records.length; idx++) {
+        await processRecord(records[idx], idx);
       }
-      await Promise.all(workers);
 
       console.log('[ExcelUpload] Import complete:', successCount, 'success,', errorCount, 'error');
 
@@ -1153,6 +1145,15 @@ export default function Home() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-800">Logs</h3>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const text = logs.map(l => `[${l.time}] [${l.type.toUpperCase()}] ${l.message}`).join('\n');
+                    navigator.clipboard.writeText(text).then(() => showToast('Logs copied', 'success'));
+                  }}
+                  className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                >
+                  Copy All
+                </button>
                 <button
                   onClick={() => setLogs([])}
                   className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
