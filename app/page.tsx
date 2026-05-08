@@ -16,7 +16,7 @@ import { ToastContainer, useToast } from '@/components/Toast';
 import { SettingsModal } from '@/components/SettingsModal';
 import { Sidebar } from '@/components/Sidebar';
 import { FileList } from '@/components/FileList';
-import { IconLogo, IconSettings, IconUpload, IconExcel, IconClose } from '@/components/Icons';
+import { IconLogo, IconSettings, IconUpload, IconExcel, IconClose, IconLog } from '@/components/Icons';
 
 const MAX_CONCURRENT = 3;
 
@@ -56,6 +56,8 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, error: 0 });
   const [completedTableUrl, setCompletedTableUrl] = useState<string | null>(null);
+  const [logs, setLogs] = useState<Array<{ type: 'log' | 'error' | 'warn'; message: string; time: string }>>([]);
+  const [showLogs, setShowLogs] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -69,6 +71,32 @@ export default function Home() {
     } else {
       setIsSettingsOpen(true);
     }
+  }, []);
+
+  // Intercept console logs
+  useEffect(() => {
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    const addLog = (type: 'log' | 'error' | 'warn', args: unknown[]) => {
+      const message = args.map(a => {
+        if (typeof a === 'object') try { return JSON.stringify(a); } catch { return String(a); }
+        return String(a);
+      }).join(' ');
+      const time = new Date().toLocaleTimeString();
+      setLogs(prev => [...prev.slice(-499), { type, message, time }]);
+    };
+
+    console.log = (...args: unknown[]) => { addLog('log', args); originalLog.apply(console, args); };
+    console.error = (...args: unknown[]) => { addLog('error', args); originalError.apply(console, args); };
+    console.warn = (...args: unknown[]) => { addLog('warn', args); originalWarn.apply(console, args); };
+
+    return () => {
+      console.log = originalLog;
+      console.error = originalError;
+      console.warn = originalWarn;
+    };
   }, []);
 
   const loadTables = async (cfg: TeableConfig) => {
@@ -935,6 +963,13 @@ export default function Home() {
             {config ? t.connected : t.notConfigured}
           </div>
           <button
+            onClick={() => setShowLogs(true)}
+            className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            title="Logs"
+          >
+            <IconLog size={16} />
+          </button>
+          <button
             onClick={() => setIsSettingsOpen(true)}
             className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
             title={t.settings}
@@ -1110,6 +1145,51 @@ export default function Home() {
         onSave={handleSaveConfig}
         showToast={showToast}
       />
+
+      {/* Log Modal */}
+      {showLogs && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-[90vw] max-w-[700px] h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-800">Logs</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLogs([])}
+                  className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowLogs(false)}
+                  className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                >
+                  <IconClose size={14} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-3 bg-gray-900 font-mono text-[11px] leading-relaxed">
+              {logs.map((log, i) => (
+                <div
+                  key={i}
+                  className={`mb-0.5 ${
+                    log.type === 'error'
+                      ? 'text-red-400'
+                      : log.type === 'warn'
+                      ? 'text-yellow-400'
+                      : 'text-gray-300'
+                  }`}
+                >
+                  <span className="text-gray-500 mr-2">[{log.time}]</span>
+                  {log.message}
+                </div>
+              ))}
+              {logs.length === 0 && (
+                <div className="text-gray-500 italic">No logs yet</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
