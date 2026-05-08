@@ -16,7 +16,7 @@ import { ToastContainer, useToast } from '@/components/Toast';
 import { SettingsModal } from '@/components/SettingsModal';
 import { Sidebar } from '@/components/Sidebar';
 import { FileList } from '@/components/FileList';
-import { IconLogo, IconSettings, IconUpload, IconExcel, IconClose, IconLog } from '@/components/Icons';
+import { IconLogo, IconSettings, IconUpload, IconExcel, IconClose, IconText } from '@/components/Icons';
 
 const MAX_CONCURRENT = 3;
 
@@ -1084,10 +1084,10 @@ export default function Home() {
               </span>
               <button
                 onClick={() => setShowLogs(true)}
-                className="text-[11px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                 title="Logs"
               >
-                icon
+                <IconText size={14} />
               </button>
             </div>
 
