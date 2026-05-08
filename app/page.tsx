@@ -462,7 +462,7 @@ export default function Home() {
       updateFileStatus(idx, 'uploading');
       try {
         const sig = await getSignature(config!, item.file);
-        const token = await uploadToStorage(item.file, sig);
+        const token = await uploadToStorage(config!, item.file, sig);
         const info = await notifyUpload(config!, token, item.file.name);
 
         // Use the original filename without extension for the name field
@@ -546,7 +546,7 @@ export default function Home() {
           setProgress(p => ({ ...p, current: p.current + 1, success: successCount + skippedCount, error: errorCount }));
         } else if (forceCreate) {
           const sig = await getSignature(config!, item.file);
-          const token = await uploadToStorage(item.file, sig);
+          const token = await uploadToStorage(config!, item.file, sig);
           const info = await notifyUpload(config!, token, item.file.name);
 
           const record = {

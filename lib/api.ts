@@ -184,10 +184,20 @@ export async function getSignature(
   });
 }
 
-export async function uploadToStorage(file: File, sig: SignatureResponse): Promise<string> {
+export async function uploadToStorage(
+  config: TeableConfig,
+  file: File,
+  sig: SignatureResponse
+): Promise<string> {
   const headers = { ...sig.requestHeaders };
   delete headers['Content-Length'];
-  const res = await fetch(sig.url, {
+  // 某些 Teable 部署返回的 sig.url 是相对路径，需要拼成绝对路径
+  let uploadUrl = sig.url;
+  if (!uploadUrl.startsWith('http://') && !uploadUrl.startsWith('https://')) {
+    const base = getBaseUrl(config);
+    uploadUrl = uploadUrl.startsWith('/') ? `${base}${uploadUrl}` : `${base}/${uploadUrl}`;
+  }
+  const res = await fetch(uploadUrl, {
     method: sig.uploadMethod,
     headers,
     body: file,
